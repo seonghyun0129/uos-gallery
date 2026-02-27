@@ -1,0 +1,19 @@
+[[redirects]]
+  from = "/2307/:num"
+  to = "/2307/:num/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/2309/:num"
+  to = "/2309/:num/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/2307"
+  to = "/2307/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/2309"
+  to = "/2309/index.html"
+  status = 200
