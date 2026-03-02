@@ -335,7 +335,7 @@
   </div>
   <div class="loader-status" id="loader-status">INITIALIZING...</div>
   <label class="loader-option">
-    <input id="boot-loading-toggle" type="checkbox" checked />
+    <input id="boot-loading-toggle" type="checkbox" />
     <span>다음 접속부터 BOOT 애니메이션 표시</span>
   </label>
 </div>
@@ -380,7 +380,7 @@
     <div style="color:var(--green-dim);font-size:0.68rem">──────────────────────────────</div>
     <br>
     <label class="loader-option">
-      <input id="boot-loading-pref" type="checkbox" checked />
+      <input id="boot-loading-pref" type="checkbox" />
       <span>다음 접속부터 BOOT 애니메이션 표시</span>
     </label>
     <br>
@@ -427,7 +427,7 @@
   const welcome = document.getElementById("win-welcome");
   const showBootLoading = forcedBootMode !== null
     ? forcedBootMode
-    : (savedBootPref === null ? true : savedBootPref === "1");
+    : (savedBootPref === null ? false : savedBootPref === "1");
 
   if (bootLoadingToggle) {
     bootLoadingToggle.checked = showBootLoading;

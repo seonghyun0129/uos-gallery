@@ -67,9 +67,6 @@
   let entryGate = null;
   let cachedPayload = null;
   let loadToken = 0;
-  let loaderRoot = null;
-  let loaderStatus = null;
-  let loaderBar = null;
   let listenersBound = false;
 
   function compactText(value, maxLength) {
@@ -105,54 +102,6 @@
 
   function shouldUseThumbnails() {
     return NODE_STYLE !== "no-thumb" && NODE_STYLE !== "no-thumbnail" && NODE_STYLE !== "text";
-  }
-
-  function ensureLoader() {
-    if (loaderRoot) return;
-
-    loaderRoot = document.createElement("div");
-    loaderRoot.className = "recode-network-loader";
-    loaderStatus = document.createElement("div");
-    loaderStatus.className = "recode-network-loader-status";
-    loaderStatus.textContent = "네트워크 갤러리 준비 중...";
-    loaderBar = document.createElement("div");
-    loaderBar.className = "recode-network-loader-bar";
-    const loaderTrack = document.createElement("div");
-    loaderTrack.className = "recode-network-loader-track";
-    loaderTrack.appendChild(loaderBar);
-
-    loaderRoot.appendChild(loaderStatus);
-    loaderRoot.appendChild(loaderTrack);
-    stage.appendChild(loaderRoot);
-  }
-
-  function showNetworkLoader(message) {
-    ensureLoader();
-    if (message && loaderStatus) {
-      loaderStatus.textContent = message;
-    }
-    if (loaderBar) {
-      loaderBar.style.width = "12%";
-    }
-    if (loaderRoot) {
-      loaderRoot.classList.add("active");
-    }
-  }
-
-  function setNetworkLoaderProgress(value) {
-    if (!loaderBar) return;
-    const next = Math.max(0, Math.min(100, Math.round(Number(value) * 100) || 0));
-    loaderBar.style.width = `${next}%`;
-  }
-
-  function hideNetworkLoader() {
-    if (!loaderRoot) return;
-    loaderRoot.classList.remove("active");
-    setTimeout(() => {
-      if (loaderRoot && !loaderRoot.classList.contains("active")) {
-        loaderBar.style.width = "0%";
-      }
-    }, 220);
   }
 
   function keepMockQueryInUrl(nextValue) {
@@ -205,38 +154,27 @@
 
   async function renderNetwork(includeMock) {
     const token = ++loadToken;
-    showNetworkLoader("네트워크 데이터를 불러오는 중...");
-    setNetworkLoaderProgress(0);
 
-    try {
-      const payload = await loadCatalogPayload();
-      if (token !== loadToken) return;
+    const payload = await loadCatalogPayload();
+    if (token !== loadToken) return;
 
-      const items = getItems(payload, includeMock);
-      if (!items.length) {
-        renderError("현재 표시할 항목이 없습니다.");
-        return;
-      }
-
-      const graphNodes = items.map((item, index) => ({ ...item, id: item.id || `item-${index}` }));
-      resetNetworkState();
-      await createNodes(graphNodes, (ratio) => {
-        setNetworkLoaderProgress(12 + (ratio * 80));
-      });
-      if (token !== loadToken) return;
-
-      if (infoBox) {
-        infoBox.textContent = `선택: 총 ${graphNodes.length}개${includeMock ? " (목업 포함)" : ""}`;
-      }
-      resize();
-      bindStageEvents();
-      entryGate = createEntryGate();
-      setNetworkLoaderProgress(100);
-    } finally {
-      if (token === loadToken) {
-        hideNetworkLoader();
-      }
+    const items = getItems(payload, includeMock);
+    if (!items.length) {
+      renderError("현재 표시할 항목이 없습니다.");
+      return;
     }
+
+    const graphNodes = items.map((item, index) => ({ ...item, id: item.id || `item-${index}` }));
+    resetNetworkState();
+    await createNodes(graphNodes);
+    if (token !== loadToken) return;
+
+    if (infoBox) {
+      infoBox.textContent = `선택: 총 ${graphNodes.length}개${includeMock ? " (목업 포함)" : ""}`;
+    }
+    resize();
+    bindStageEvents();
+    entryGate = createEntryGate();
   }
 
   function getItems(payload, includeMocks) {
@@ -522,12 +460,9 @@
     hoveredMesh = null;
   }
 
-  async function createNodes(items, onProgress) {
+  async function createNodes(items) {
     clearScene();
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    const totalItems = Math.max(items.length, 1);
-    let completed = 0;
-
     const nodeEntries = await Promise.all(items.map(async (item, index) => {
       const unit = (index + 0.5) / Math.max(items.length, 1);
       const radius = NODE_CLUSTER_RADIUS * Math.sqrt(unit);
@@ -571,11 +506,6 @@
       sprite.position.set(anchorX, anchorY, anchorZ);
       sprite.userData.work = enrichedItem;
       sprite.renderOrder = 1;
-
-      completed += 1;
-      if (onProgress) {
-        onProgress(completed / totalItems);
-      }
 
       return {
         mesh: sprite,

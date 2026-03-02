@@ -209,49 +209,6 @@
   pointer-events: none;
 }
 
-.recode-network-loader {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.55rem;
-  pointer-events: none;
-  padding: 1rem 1rem 1.3rem;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.recode-network-loader.active {
-  opacity: 1;
-}
-
-.recode-network-loader-status {
-  color: rgba(190, 255, 220, 0.9);
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
-  text-shadow: 0 0 10px rgba(0, 255, 170, 0.45);
-}
-
-.recode-network-loader-track {
-  width: min(420px, 62vw);
-  height: 6px;
-  border: 1px solid rgba(0, 245, 125, 0.45);
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(0, 18, 10, 0.65);
-  box-shadow: 0 0 12px rgba(0, 255, 120, 0.25);
-}
-
-.recode-network-loader-bar {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(0, 255, 120, 0.45), rgba(0, 255, 120, 0.98));
-  transition: width 0.18s ease;
-}
-
 .network-info-panel {
   position: fixed;
   right: 0.85rem;
