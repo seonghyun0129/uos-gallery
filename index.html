@@ -1,69 +1,534 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>UOS RECODE</title>
-    <meta property="og:title" content="UOS RECODE">
-    <meta property="og:description" content="서울시립대학교 디자인학과 코딩 스터디그룹 recode">
-    <meta property="og:image" content="https://cdn.imweb.me/upload/S2022030222ee0b2e93de0/1c5b8080d7ae0.jpg">
-    <link href="/assets/css/styles.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UOS RECODE</title>
+  <style>
+    :root {
+      --green: #00ff41;
+      --green-dim: rgba(0,255,65,0.88);
+      --green-faint: rgba(0,255,65,0.12);
+      --bg: #0a0a0a;
+      --win-bg: #111;
+      --win-border: rgba(0,255,65,0.6);
+      --taskbar-h: 36px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: 'Courier New', Courier, monospace;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── LOADER ── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.4rem;
+      transition: opacity 0.7s ease;
+    }
+    #loader.fade-out { opacity: 0; pointer-events: none; }
+
+    .loader-bar-wrap {
+      width: min(340px, 80vw);
+      border: 1px solid var(--green-dim);
+      height: 14px;
+      position: relative;
+    }
+    .loader-bar-fill {
+      height: 100%;
+      background: var(--green);
+      width: 0%;
+      transition: width 0.15s ease;
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .loader-status {
+      font-size: 1rem;
+      color: var(--green-dim);
+      letter-spacing: 0.08em;
+      min-height: 1.2em;
+    }
+
+    .usb-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 123px;
+      height: 66px;
+      margin-bottom: 30px;
+      padding: 0;
+      font-size: 16px;
+      color: #00ff41;
+      font-family: "Courier New", Courier, monospace;
+      background: transparent;
+    }
+
+    .usb-stick {
+      width: 80px;
+      height: 40px;
+      background: #00ff41;
+      position: relative;
+      animation: plug-in 2s infinite;
+    }
+
+    .usb-port {
+      width: 40px;
+      height: 60px;
+      border: 3px solid #00ff41;
+      border-left: none;
+      position: relative;
+    }
+
+    @keyframes plug-in {
+      0% {
+        transform: translateX(-100px);
+        opacity: 0;
+      }
+      50% {
+        transform: translateX(-10px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-10px);
+        opacity: 1;
+      }
+    }
+
+    .loader-option {
+      margin-top: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--green-dim);
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── DESKTOP ── */
+    #desktop {
+      position: fixed;
+      inset: 0 0 var(--taskbar-h) 0;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .desktop-icons {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      align-items: flex-start;
+    }
+
+    .d-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      width: 80px;
+      text-decoration: none;
+      color: var(--green);
+      padding: 6px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .d-icon:hover,
+    .d-icon:focus {
+      border-color: var(--green-dim);
+      background: var(--green-faint);
+      outline: none;
+    }
+    .d-icon.selected {
+      border-color: var(--green-dim);
+      background: var(--green-faint);
+    }
+
+    .d-icon-shape {
+      width: 48px;
+      height: 48px;
+      background: #b8b8b8;
+      clip-path: polygon(30% 0%,70% 0%,100% 30%,100% 70%,70% 100%,30% 100%,0% 70%,0% 30%);
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .d-icon:hover .d-icon-shape,
+    .d-icon:focus .d-icon-shape { background: #e0e0e0; }
+
+    .d-icon-label {
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    /* ── WINDOW ── */
+    .win {
+      position: absolute;
+      background: var(--win-bg);
+      border: 1px solid var(--win-border);
+      box-shadow: 4px 4px 0 rgba(0,255,65,0.15), 0 0 24px rgba(0,255,65,0.08);
+      min-width: 280px;
+      display: none;
+    }
+    .win.visible { display: block; }
+
+    .win-title-bar {
+      background: var(--green);
+      color: #000;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: move;
+    }
+    .win-close {
+      background: none;
+      border: 1px solid #000;
+      color: #000;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0 5px;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .win-close:hover { background: #000; color: var(--green); }
+
+    .win-body {
+      padding: 16px;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    .win-body a {
+      display: block;
+      color: var(--green);
+      text-decoration: none;
+      padding: 4px 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .win-body a:hover {
+      border-color: var(--green-dim);
+      background: var(--green-faint);
+    }
+
+    .win-prompt::before {
+      content: "> ";
+      color: var(--green-dim);
+    }
+
+    /* ── TASKBAR ── */
+    #taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--taskbar-h);
+      background: #0d0d0d;
+      border-top: 1px solid var(--win-border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 0 10px;
+      z-index: 500;
+    }
+
+    .taskbar-start {
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      border: 1px solid var(--green-dim);
+      padding: 2px 10px;
+      cursor: pointer;
+      background: none;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .taskbar-start:hover { background: var(--green-faint); }
+
+    .taskbar-wins {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      padding: 0 10px;
+    }
+
+    .taskbar-win-btn {
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      color: var(--green-dim);
+      border: 1px solid rgba(0,255,65,0.25);
+      padding: 1px 8px;
+      cursor: pointer;
+      background: none;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.12s, color 0.12s;
+    }
+    .taskbar-win-btn:hover, .taskbar-win-btn.active {
+      background: var(--green-faint);
+      color: var(--green);
+    }
+
+    .taskbar-clock {
+      width: 104.5px;
+      height: 19.5px;
+      margin: 0;
+      padding: 0;
+      display: block;
+      font-size: 16px;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 400;
+      color: #00ff41;
+      background: transparent;
+      white-space: nowrap;
+      text-shadow: 0 0 8px rgba(0, 255, 65, 0.42);
+      letter-spacing: 0;
+      line-height: 19.5px;
+    }
+
+    /* ── cursor blink ── */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--green);
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── WELCOME WINDOW default position ── */
+    #win-welcome { top: 60px; left: calc(80px + 18px + 32px); width: 430px; }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="header">
-            <a href="/"><img class="logo" src="/assets/images/common/logo.png"></a>
-            <p class="headertext">UOSVD coding Club</p>
-        </div>
-        <nav class="web_nav">
-            <a href="/archives/2026/03/"><div class="menu">&gt; 2026.03</div></a>
-            <a href="/archives/2023/10/"><div class="menu">&gt; 2023.10</div></a>
-            <a href="/archives/2023/07/"><div class="menu">&gt; 2023.07</div></a>
-        </nav>
-        <nav class="mobile_nav">
-            <a href="/archives/2026/03/"><div class="menu">&gt; 2026.03</div></a>
-            <a href="/archives/2023/10/"><div class="menu">&gt; 2023.10</div></a>
-            <a href="/archives/2023/07/"><div class="menu">&gt; 2023.07</div></a>
-        </nav>
-    </header>
-    <div class="content">
-        <img class="indexlogo" src="/assets/images/common/logo.png">
-        <div class="typing-txt">
-            <ul>
-                <li>&lt;about&gt;</li>
-                <li>&lt;/recode&gt;는 서울시립대학교 디자인학과의 코딩 스터디그룹 입니다.</li>
-                <li>웹코딩부터 미디어아트에 이르기까지 다양한 종류의 언어를 자유롭게 스터디합니다.</li>
-                <li>&lt;/about&gt;</li>
-                <li>&lt;works&gt;</li>
-                <li>&gt; 2026.03</li>
-                <li>&gt; 2023.10</li>
-                <li>&gt; 2023.07</li>
-                <li>&lt;/works&gt;</li>
-                <li>&lt;member&gt;</li>
-                <li>김예영 / 류채은 / 박나현 / 변민경 / 안지민 / 최혜민 / 황예인</li>
-                <li>&lt;/member&gt;</li>
-                <li>&lt;contact&gt;</li>
-                <li>스터디 가입이나 협업, 기타 문의 등은 아래 이메일로 연락 부탁드립니다.</li>
-                <li>uos.recode@gmail.com</li>
-                <li>&lt;/contact&gt;</li>
-            </ul>
-        </div>
-        <div class="typing">
-            <ul>
-                <li></li><li></li><li></li><li></li><li></li>
-                <li></li><li></li><li></li><li></li><li></li>
-                <li></li><li></li><li></li><li></li><li></li>
-            </ul>
-        </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-    <script src="/assets/js/script.js"></script>
+
+<!-- ── LOADER ── -->
+<div id="loader">
+  <div class="usb-container">
+    <div class="usb-stick"></div>
+    <div class="usb-port"></div>
+  </div>
+  <div class="loader-bar-wrap">
+    <div class="loader-bar-fill" id="loader-bar"></div>
+  </div>
+  <div class="loader-status" id="loader-status">INITIALIZING...</div>
+  <label class="loader-option">
+    <input id="boot-loading-toggle" type="checkbox" checked />
+    <span>다음 접속부터 BOOT 애니메이션 표시</span>
+  </label>
+</div>
+
+<!-- ── DESKTOP ── -->
+<div id="desktop" style="display:none">
+  <div class="desktop-icons">
+    <a class="d-icon" href="/recode1/no-thumbnail.html" id="icon-noThumb" tabindex="0"
+       title="네트워크 갤러리 (썸네일 없음)">
+      <span class="d-icon-shape"></span>
+      <span class="d-icon-label">NETWORK&#10;NO-THUMB</span>
+    </a>
+    <a class="d-icon" href="/recode1/thumbnaildl/" id="icon-thumb" tabindex="0"
+       title="네트워크 갤러리 (썸네일)">
+      <span class="d-icon-shape"></span>
+      <span class="d-icon-label">NETWORK&#10;THUMB</span>
+    </a>
+    <a class="d-icon" href="/legacy/" id="icon-legacy" tabindex="0"
+       title="기존 아카이브">
+      <span class="d-icon-shape"></span>
+      <span class="d-icon-label">LEGACY&#10;ARCHIVE</span>
+    </a>
+  </div>
+</div>
+
+<!-- ── WELCOME WINDOW ── -->
+<div class="win" id="win-welcome">
+  <div class="win-title-bar" id="win-welcome-title">
+    <span>C:\RECODE\WELCOME.TXT</span>
+    <button class="win-close" onclick="closeWin('win-welcome')">✕</button>
+  </div>
+  <div class="win-body">
+    <div class="win-prompt">UOS_RECODE v2.0</div>
+    <div class="win-prompt">서울시립대학교 디자인학과 코딩 스터디</div>
+    <br>
+    <div style="color:var(--green-dim);font-size:0.68rem">── DIRECTORY ──────────────────</div>
+    <br>
+    <a href="/recode1/no-thumbnail.html">[ NETWORK_ARCHIVE  ] 네트워크 (텍스트)</a>
+    <a href="/recode1/thumbnaildl/">[ NETWORK_VISUAL   ] 네트워크 (썸네일)</a>
+    <a href="/legacy/">[ LEGACY_ARCHIVE   ] 기존 아카이브</a>
+    <br>
+    <div style="color:var(--green-dim);font-size:0.68rem">──────────────────────────────</div>
+    <br>
+    <label class="loader-option">
+      <input id="boot-loading-pref" type="checkbox" checked />
+      <span>다음 접속부터 BOOT 애니메이션 표시</span>
+    </label>
+    <br>
+    <br>
+    <div>아이콘을 클릭하거나 목록을 선택하세요 <span class="cursor"></span></div>
+  </div>
+</div>
+
+<!-- ── TASKBAR ── -->
+<div id="taskbar">
+  <button class="taskbar-start" onclick="toggleWin('win-welcome')">▶ RE:CODE</button>
+  <div class="taskbar-clock" id="clock">00:00:00</div>
+  <div class="taskbar-wins">
+    <button class="taskbar-win-btn active" onclick="toggleWin('win-welcome')">WELCOME.TXT</button>
+  </div>
+</div>
+
+<script>
+  const bootLoadingToggle = document.getElementById("boot-loading-toggle");
+  const bootLoadingPref = document.getElementById("boot-loading-pref");
+  const queryParams = new URLSearchParams(window.location.search);
+  const BOOT_PREF_KEY = "recode-show-boot-loading";
+  const forcedBoot = queryParams.get("boot");
+  const forcedBootMode = forcedBoot === null
+    ? null
+    : (forcedBoot === "1" || forcedBoot === "true" || forcedBoot === "on" || forcedBoot === "yes");
+  const savedBootPref = window.localStorage?.getItem(BOOT_PREF_KEY);
+
+  /* ── LOADER SEQUENCE ── */
+  const steps = [
+    [8,  "LOADING KERNEL..."],
+    [22, "MOUNTING ARCHIVE FILESYSTEM..."],
+    [45, "SCANNING ARTWORK DATABASE..."],
+    [62, "CONNECTING NODE NETWORK..."],
+    [80, "RENDERING ENVIRONMENT..."],
+    [95, "SYSTEM READY."],
+    [100,"WELCOME."],
+  ];
+
+  const bar    = document.getElementById("loader-bar");
+  const status = document.getElementById("loader-status");
+  const loader = document.getElementById("loader");
+  const desktop = document.getElementById("desktop");
+  const welcome = document.getElementById("win-welcome");
+  const showBootLoading = forcedBootMode !== null
+    ? forcedBootMode
+    : (savedBootPref === null ? true : savedBootPref === "1");
+
+  if (bootLoadingToggle) {
+    bootLoadingToggle.checked = showBootLoading;
+    bootLoadingToggle.addEventListener("change", () => {
+      const nextValue = bootLoadingToggle.checked;
+      window.localStorage?.setItem(BOOT_PREF_KEY, nextValue ? "1" : "0");
+      if (bootLoadingPref) {
+        bootLoadingPref.checked = nextValue;
+      }
+      if (!nextValue) {
+        loader.classList.add("fade-out");
+        loader.style.display = "none";
+        desktop.style.display = "";
+        welcome.classList.add("visible");
+      }
+    });
+  }
+
+  if (bootLoadingPref) {
+    bootLoadingPref.checked = showBootLoading;
+    bootLoadingPref.addEventListener("change", () => {
+      const nextValue = bootLoadingPref.checked;
+      window.localStorage?.setItem(BOOT_PREF_KEY, nextValue ? "1" : "0");
+      if (bootLoadingToggle) {
+        bootLoadingToggle.checked = nextValue;
+      }
+    });
+  }
+
+  let step = 0;
+  function runStep() {
+    if (step >= steps.length) {
+      loader.classList.add("fade-out");
+      setTimeout(() => {
+        loader.style.display = "none";
+        desktop.style.display = "";
+        welcome.classList.add("visible");
+      }, 750);
+      return;
+    }
+    const [pct, msg] = steps[step++];
+    bar.style.width = pct + "%";
+    status.textContent = msg;
+    const delay = step < steps.length ? 260 + Math.random() * 320 : 600;
+    setTimeout(runStep, delay);
+  }
+
+  if (showBootLoading) {
+    setTimeout(runStep, 400);
+  } else {
+    loader.style.display = "none";
+    desktop.style.display = "";
+    welcome.classList.add("visible");
+  }
+
+  /* ── CLOCK ── */
+  function updateClock() {
+    const now = new Date();
+    const time = now.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    });
+    const clock = document.getElementById("clock");
+    if (clock) {
+      clock.textContent = time;
+    }
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  /* ── WINDOW MANAGEMENT ── */
+  function closeWin(id) {
+    document.getElementById(id).classList.remove("visible");
+  }
+  function toggleWin(id) {
+    document.getElementById(id).classList.toggle("visible");
+  }
+
+  /* ── DRAGGABLE WINDOWS ── */
+  document.querySelectorAll(".win-title-bar").forEach(bar => {
+    const win = bar.parentElement;
+    let ox = 0, oy = 0, sx = 0, sy = 0, dragging = false;
+
+    bar.addEventListener("pointerdown", e => {
+      if (e.target.classList.contains("win-close")) return;
+      dragging = true;
+      bar.setPointerCapture(e.pointerId);
+      const rect = win.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+      win.style.right = "auto";
+    });
+    bar.addEventListener("pointermove", e => {
+      if (!dragging) return;
+      win.style.left = (e.clientX - ox) + "px";
+      win.style.top  = (e.clientY - oy) + "px";
+    });
+    bar.addEventListener("pointerup", () => { dragging = false; });
+  });
+</script>
 </body>
 </html>

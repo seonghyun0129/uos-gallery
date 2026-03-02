@@ -187,3 +187,18 @@
   from = "/works/:artist/:year/:month/:project"
   to = "/works/:artist/:year/:month/:project/"
   status = 301
+
+[[redirects]]
+  from = "/recode1"
+  to = "/recode1/"
+  status = 301
+
+[[redirects]]
+  from = "/legacy"
+  to = "/legacy/"
+  status = 301
+
+[[redirects]]
+  from = "/legacy/index.html"
+  to = "/legacy/"
+  status = 301

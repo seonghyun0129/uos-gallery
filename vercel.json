@@ -2,6 +2,22 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/recode1",
+      "destination": "/recode1/index.html"
+    },
+    {
+      "source": "/recode1/",
+      "destination": "/recode1/index.html"
+    },
+    {
+      "source": "/legacy",
+      "destination": "/legacy/index.html"
+    },
+    {
+      "source": "/legacy/",
+      "destination": "/legacy/index.html"
+    },
+    {
       "source": "/archives/:year/:month",
       "destination": "/archives/:year/:month/index.html"
     },

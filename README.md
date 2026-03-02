@@ -12,6 +12,7 @@
 uos-gallery/
 ├── index.html
 ├── netlify.toml
+├── recode1/                    # 네트워크 시각화 진입 페이지
 ├── templates/
 │   ├── work-template.html
 │   ├── archive-card-template.html
@@ -73,6 +74,9 @@ uos-gallery/
 - 월별 아카이브 페이지 기본 뼈대
 - `<!-- AUTO-GENERATED-START -->` 와 `<!-- AUTO-GENERATED-END -->` 사이만 OpenClaw가 갱신
 
+### `recode1`
+- `recode1/`는 D3 기반 네트워크 갤러리 페이지(클릭 시 작품 페이지로 이동)
+
 ## OpenClaw 실행 스크립트
 
 ```bash
@@ -92,6 +96,7 @@ python3 scripts/add-artwork.py \
 - `--overwrite` : 동일한 작품/썸네일 경로가 있어도 덮어쓰기
 - `--no-git` : `git add/commit/push` 수행 안 함
 - `--sync-navigation` : 현재 archives 폴더 기준으로 기존 상세/아카이브/루트 nav를 일괄 갱신(신규 등록 없이)
+- `--sync-network` : 작품 네트워크용 데이터 파일(`/assets/data/network-catalog.json`)만 갱신(신규 등록 없이)
 
 ### 예외 처리 규칙
 

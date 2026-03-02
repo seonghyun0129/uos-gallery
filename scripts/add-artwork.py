@@ -18,11 +18,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import html
+import json
 import re
 import shutil
 import subprocess
 import sys
 import unicodedata
+from urllib.parse import parse_qs, urlparse
 from pathlib import Path
 
 
@@ -31,11 +34,24 @@ TEMPLATES = BASE / "templates"
 WORK_TEMPLATE = TEMPLATES / "work-template.html"
 ARCHIVE_TEMPLATE = TEMPLATES / "archive-template.html"
 CARD_TEMPLATE = TEMPLATES / "archive-card-template.html"
+NETWORK_DATA = BASE / "assets" / "data" / "network-catalog.json"
+GALLERY_ROOT = BASE / "assets" / "images" / "gallery"
 
 START_MARKER = "<!-- AUTO-GENERATED-START -->"
 END_MARKER = "<!-- AUTO-GENERATED-END -->"
 MENU_LINK_TEMPLATE = '            <a href="/archives/{year}/{month}/"><div class="menu">&gt; {year}.{month}</div></a>'
 WORKS_LINE_TEMPLATE = "                <li>&gt; {year}.{month}</li>"
+THUMBNAIL_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+LISTING_EXCLUDE_SLUGS = {"auto-test"}
+LISTING_EXCLUDE_KEYWORDS = ("auto test", "auto-test")
+
+
+YOUTUBE_THUMBNAILS = [
+    "maxresdefault.jpg",
+    "hqdefault.jpg",
+    "mqdefault.jpg",
+    "sddefault.jpg",
+]
 
 
 def slugify(value: str) -> str:
@@ -56,6 +72,269 @@ def slugify(value: str) -> str:
         raise ValueError("slug could not be generated from input")
 
     return value
+
+
+def is_hidden_work(work_slug: str, title: str) -> bool:
+    slug = (work_slug or "").strip().lower()
+    title_text = (title or "").strip().lower()
+    if slug in LISTING_EXCLUDE_SLUGS:
+        return True
+    if slug.startswith("auto-"):
+        return True
+    for keyword in LISTING_EXCLUDE_KEYWORDS:
+        if keyword in title_text:
+            return True
+    if "테스트" in title_text and "auto" in slug:
+        return True
+    if "자동" in title_text and "생성" in title_text:
+        return True
+    return False
+
+
+def strip_html(value: str) -> str:
+    if not value:
+        return ""
+    text = re.sub(r"<[^>]+>", "", value)
+    text = html.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def extract_gallery_thumbnail(
+    html_text: str,
+    year: str,
+    month: str,
+    work_slug: str,
+    fallback: str,
+    work_path: str,
+) -> str:
+    """Parse gallery image path from work page and normalize fallback.
+
+    Prefer dedicated work image wrapper first, then gallery card style.
+    """
+    candidates = [
+        re.compile(
+            r'<div class="image-wrapper"[\s\S]*?<img[^>]+src="([^"]+)"',
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r'<img[^>]+class="gallery_img"[^>]+src="([^"]+)"',
+            re.IGNORECASE,
+        ),
+    ]
+    for pattern in candidates:
+        match = pattern.search(html_text)
+        if not match:
+            continue
+        path = match.group(1).strip()
+        if path.startswith("/assets/images/gallery/"):
+            return path
+
+    for ext in THUMBNAIL_EXTS:
+        candidate = f"{year}/{month}/{work_slug}{ext}"
+        if (GALLERY_ROOT / candidate).exists():
+            return f"/assets/images/gallery/{candidate}"
+
+    # 3) Use archive card thumbnail if available
+    thumbnail_from_archive = find_archive_thumbnail(work_path)
+    if thumbnail_from_archive:
+        return thumbnail_from_archive
+
+    # 4) If this page has a youtube/video embed, fallback to video thumbnail
+    video_thumbnail = extract_video_thumbnail(html_text)
+    if video_thumbnail:
+        return video_thumbnail
+
+    return fallback
+
+
+def parse_youtube_id(src: str) -> str:
+    parsed = urlparse(src)
+    if parsed.netloc.endswith("youtube.com") and parsed.path.startswith("/embed/"):
+        return parsed.path.split("/", 2)[-1].split("?")[0].split("&")[0]
+    if parsed.netloc in {"youtu.be"}:
+        return parsed.path.strip("/").split("?")[0].split("&")[0]
+    if parsed.netloc.endswith("youtube.com") and parsed.path == "/watch":
+        vid = parse_qs(parsed.query).get("v", [""])
+        return vid[0] if vid else ""
+    return ""
+
+
+def extract_video_thumbnail(html_text: str) -> str:
+    # Priority: iframe src
+    iframe_match = re.search(
+        r'<iframe[^>]+src="([^"]+)"',
+        html_text,
+        re.IGNORECASE,
+    )
+    if iframe_match:
+        vid = parse_youtube_id(iframe_match.group(1).strip())
+        if vid:
+            for suffix in YOUTUBE_THUMBNAILS:
+                return f"https://i.ytimg.com/vi/{vid}/{suffix}"
+
+    poster_match = re.search(
+        r'<video[^>]+poster="([^"]+)"',
+        html_text,
+        re.IGNORECASE,
+    )
+    if poster_match:
+        poster = poster_match.group(1).strip()
+        if poster.startswith("/assets/images/"):
+            return poster
+    return ""
+
+
+def find_archive_thumbnail(work_path: str) -> str:
+    # work_path: "/works/{artist}/{year}/{month}/{slug}/"
+    archives_root = BASE / "archives"
+    if not archives_root.exists():
+        return ""
+
+    path_pattern = re.compile(
+        rf'<a\s+href="{re.escape(work_path)}"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"',
+        re.IGNORECASE,
+    )
+    for archive_file in sorted(archives_root.glob("*/*/index.html")):
+        try:
+            html_text = archive_file.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+        match = path_pattern.search(html_text)
+        if not match:
+            continue
+        src = match.group(1).strip()
+        if src.startswith("/assets/images/gallery/"):
+            return src
+    return ""
+
+
+def parse_work_page(index_file: Path, artist_slug: str, year: str, month: str, work_slug: str) -> dict[str, str]:
+    html_text = index_file.read_text(encoding="utf-8", errors="ignore")
+
+    title = "Unknown"
+    title_match = re.search(r"<title>[^|>]*\|\s*(.*?)</title>", html_text, flags=re.IGNORECASE)
+    if title_match:
+        title = strip_html(title_match.group(1)) or title
+
+    artist = artist_slug
+    artist_match = re.search(
+        rf'<a\s+class="member"[^>]*href="/works/{re.escape(artist_slug)}/{year}/{month}/{re.escape(work_slug)}/"[^>]*>(.*?)</a>',
+        html_text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if artist_match:
+        artist = strip_html(artist_match.group(1)) or artist
+
+    description = ""
+    desc_match = re.search(r'<div class="work_text2">(.*?)</div>', html_text, re.IGNORECASE | re.DOTALL)
+    if not desc_match:
+        desc_match = re.search(r'<p class="description">(.*?)</p>', html_text, re.IGNORECASE | re.DOTALL)
+    if desc_match:
+        description = strip_html(desc_match.group(1))
+
+    work_path = f"/works/{artist_slug}/{year}/{month}/{work_slug}/"
+    fallback = f"/assets/images/gallery/{year}/{month}/{work_slug}.jpg"
+    thumb_path = extract_gallery_thumbnail(
+        html_text,
+        year,
+        month,
+        work_slug,
+        fallback,
+        work_path,
+    )
+
+    return {
+        "id": f"{artist_slug}:{year}:{month}:{work_slug}",
+        "title": title,
+        "artist": artist,
+        "artistSlug": artist_slug,
+        "year": year,
+        "month": month,
+        "path": f"/works/{artist_slug}/{year}/{month}/{work_slug}/",
+        "thumbnail": thumb_path,
+        "description": description,
+    }
+
+
+def collect_work_catalog(works_dir: Path) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for index_file in sorted(works_dir.glob("*/*/*/*/index.html")):
+        rel = index_file.relative_to(works_dir)
+        if len(rel.parts) != 5:
+            continue
+        artist_slug, year, month, work_slug, _ = rel.parts
+        if not year.isdigit() or not month.isdigit():
+            continue
+        year = year.zfill(4)
+        month = month.zfill(2)
+        try:
+            item = parse_work_page(index_file, artist_slug, year, month, work_slug)
+            if is_hidden_work(work_slug, item.get("title", "")):
+                continue
+            items.append(item)
+        except Exception:
+            continue
+    items.sort(key=lambda item: (item["year"], item["month"], item["title"].lower()), reverse=True)
+    return items
+
+
+def load_mock_items(output_file: Path) -> list[dict[str, str]]:
+    if not output_file.exists():
+        return []
+    try:
+        raw_payload = json.loads(output_file.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    if not isinstance(raw_payload, dict):
+        return []
+
+    raw_items = raw_payload.get("mockItems")
+    if not isinstance(raw_items, list):
+        return []
+
+    seen = set()
+    normalized = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+        if item.get("isMock") not in {None, True} and str(item.get("isMock")).lower() not in {"true", "1", "yes", "on"}:
+            continue
+
+        item = dict(item)
+        item_id = item.get("id")
+        if not item_id:
+            continue
+        if item_id in seen:
+            continue
+        seen.add(item_id)
+        item["isMock"] = True
+        normalized.append(item)
+    return normalized
+
+
+def build_network_catalog(works_dir: Path, output_file: Path) -> Path:
+    items = collect_work_catalog(works_dir)
+    mock_items = load_mock_items(output_file)
+    payload: dict[str, object] = {}
+    if output_file.exists():
+        try:
+            loaded = json.loads(output_file.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                payload = loaded
+        except Exception:
+            payload = {}
+
+    payload = {
+        "items": items,
+        "mockItems": mock_items,
+        "count": len(items),
+        "mockCount": len(mock_items),
+    }
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[ok] updated network catalog: {output_file}")
+    return output_file
 
 
 def replace_tokens(template_text, replacements):
@@ -237,6 +516,7 @@ def update_archive(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Add artwork page + archive card from templates")
     parser.add_argument("--artist-name")
+    parser.add_argument("--artist", dest="artist", help="Alias for --artist-name.")
     parser.add_argument("--title")
     parser.add_argument("--year")
     parser.add_argument("--month")
@@ -251,6 +531,11 @@ def main() -> None:
         action="store_true",
         help="Sync navigation links only, without creating artwork",
     )
+    parser.add_argument(
+        "--sync-network",
+        action="store_true",
+        help="Rebuild network catalog only, without creating artwork",
+    )
 
     args = parser.parse_args()
 
@@ -259,15 +544,22 @@ def main() -> None:
         print("[done] sync navigation")
         for path in updated_pages:
             print(f"  updated: {path}")
+    if args.sync_network:
+        build_network_catalog(works_dir=BASE / "works", output_file=NETWORK_DATA)
+
+    if args.sync_navigation or args.sync_network:
         return
 
-    if not args.artist_name or not args.title or not args.year or not args.month or not args.image:
-        raise ValueError("Missing required fields: --artist-name, --title, --year, --month, --image")
+    if not (args.artist_name or args.artist) or not args.title or not args.year or not args.month or not args.image:
+        raise ValueError(
+            "Missing required fields: --artist-name (or --artist), --title, --year, --month, --image"
+        )
 
     year = str(args.year).zfill(4)
     month = str(args.month).zfill(2)
 
-    artist_slug = args.artist_slug or slugify(args.artist_name)
+    artist_name = args.artist_name or args.artist
+    artist_slug = args.artist_slug or slugify(artist_name)
     work_slug = args.work_slug or slugify(args.title)
 
     image_src = Path(args.image).expanduser()
@@ -299,7 +591,7 @@ def main() -> None:
         template_html,
         {
             "TITLE": args.title,
-            "ARTIST": args.artist_name,
+            "ARTIST": artist_name,
             "ARTIST_SLUG": artist_slug,
             "WORK_SLUG": work_slug,
             "YEAR": year,
@@ -312,38 +604,45 @@ def main() -> None:
     )
     works_index.write_text(work_html, encoding="utf-8")
 
-    # archive card
-    if not CARD_TEMPLATE.exists():
-        raise FileNotFoundError(f"Missing template: {CARD_TEMPLATE}")
+    hidden_from_listing = is_hidden_work(work_slug, args.title)
+    if not hidden_from_listing:
+        # archive card
+        if not CARD_TEMPLATE.exists():
+            raise FileNotFoundError(f"Missing template: {CARD_TEMPLATE}")
 
-    card_template = CARD_TEMPLATE.read_text(encoding="utf-8")
-    work_path = f"/works/{artist_slug}/{year}/{month}/{work_slug}/"
-    card_html = replace_tokens(
-        card_template,
-        {
-            "WORK_PATH": work_path,
-            "THUMBNAIL_PATH": f"/assets/images/gallery/{year}/{month}/{work_slug}{image_ext}",
-            "TITLE": args.title,
-            "ARTIST": args.artist_name,
-        },
-    )
+        card_template = CARD_TEMPLATE.read_text(encoding="utf-8")
+        work_path = f"/works/{artist_slug}/{year}/{month}/{work_slug}/"
+        card_html = replace_tokens(
+            card_template,
+            {
+                "WORK_PATH": work_path,
+                "THUMBNAIL_PATH": f"/assets/images/gallery/{year}/{month}/{work_slug}{image_ext}",
+                "TITLE": args.title,
+                "ARTIST": artist_name,
+            },
+        )
 
-    update_archive(
-        archives_dir=BASE / "archives",
-        year=year,
-        month=month,
-        card=card_html,
-        work_path=work_path,
-        title=args.title,
-    )
+        update_archive(
+            archives_dir=BASE / "archives",
+            year=year,
+            month=month,
+            card=card_html,
+            work_path=work_path,
+            title=args.title,
+        )
+    else:
+        print(f"[skip] hidden from archive/network: {artist_slug}/{year}/{month}/{work_slug}")
 
     updated_pages = sync_navigation_links(BASE)
+    build_network_catalog(works_dir=BASE / "works", output_file=NETWORK_DATA)
     staging_targets = {
         str(works_index),
         str(image_dst),
-        str(BASE / "archives" / year / month / "index.html"),
         *(str(p) for p in updated_pages),
+        str(NETWORK_DATA),
     }
+    if not hidden_from_listing:
+        staging_targets.add(str(BASE / "archives" / year / month / "index.html"))
 
     if not args.no_git:
         if staging_targets:

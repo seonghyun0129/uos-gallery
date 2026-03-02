@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UOS RECODE | recode1 (썸네일)</title>
+  <link rel="stylesheet" href="/assets/css/recode-network.css" />
+  <style>
+    .recode-network {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body class="recode-network">
+  <header class="recode-network-header">
+    <a href="/recode1/no-thumbnail.html" class="recode-back-link">썸네일 없는 버전</a>
+    <a href="/"><img class="logo" src="/assets/images/common/logo.png" alt="logo" /></a>
+    <a href="/" class="recode-back-link">전체 작품 아카이브</a>
+  </header>
+  <main class="recode-network-main">
+    <div id="network-stage">
+      <div id="network-canvas"></div>
+    </div>
+    <aside id="network-info" class="network-info-panel">
+      <div class="network-status-row">
+        <p class="network-title">네트워크 갤러리 (썸네일)</p>
+        <label class="network-mock-toggle">
+          <input id="network-show-mock" type="checkbox" />
+          <span>목업 표시</span>
+        </label>
+      </div>
+      <p class="network-hint">마우스로 시점을 흔들어 전체 흐름을 탐색하세요.</p>
+      <div id="network-selected">선택: 없음</div>
+    </aside>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <script>
+    window.RECODE_NETWORK_OPTIONS = { nodeStyle: "thumbnail" };
+  </script>
+  <script src="/assets/js/recode-network.js"></script>
+</body>
+</html>

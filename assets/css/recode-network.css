@@ -1,0 +1,423 @@
+.recode-landing {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.05), transparent 30%), #000;
+  color: #fff;
+}
+
+.recode-landing-wrap {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.recode-landing-logo {
+  width: 8em;
+}
+
+.recode-landing-sub {
+  opacity: 0.75;
+  margin: 0;
+}
+
+.recode-landing-wrap h1 {
+  font-size: clamp(2rem, 8vw, 4rem);
+  margin: 0;
+}
+
+.recode-landing-desc {
+  max-width: 560px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.recode-enter-btn {
+  margin-top: 1rem;
+  padding: 0.8em 1.2em;
+  background: #fff;
+  color: #000;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.recode-enter-btn-outline {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+.recode-network {
+  margin: 0;
+  background: #000;
+  color: #00f07a;
+  min-height: 100vh;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+}
+
+@keyframes network-scan-shift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(7px);
+  }
+}
+
+@keyframes network-flicker {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.84;
+  }
+}
+
+.recode-network-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  background: rgba(0, 10, 3, 0.82);
+  border-bottom: 1px solid rgba(0, 236, 112, 0.35);
+  backdrop-filter: blur(6px);
+}
+
+.recode-network-header .logo {
+  width: 5.2em;
+}
+
+.recode-back-link {
+  color: #43ff9f;
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.recode-network-main {
+  position: relative;
+  min-height: calc(100vh - 3.5rem);
+  padding-top: 3.5rem;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.recode-network.no-thumb-mode .recode-network-main {
+  min-height: 100vh;
+  padding-top: 0;
+  display: block;
+}
+
+.recode-network.no-thumb-mode .recode-network-header {
+  display: none;
+}
+
+#network-stage {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000;
+}
+
+.recode-network.no-thumb-mode #network-stage,
+.recode-network.no-thumb-mode #network-canvas {
+  height: 100vh;
+  min-height: 100vh;
+}
+
+.recode-network.no-thumb-mode #network-stage {
+  background: #000;
+}
+
+#network-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(15, 255, 120, 0.08), transparent 58%);
+}
+
+#network-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(0, 255, 120, 0.035) 0,
+      rgba(0, 255, 120, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  mix-blend-mode: screen;
+  opacity: 0.28;
+}
+
+.recode-network.no-thumb-mode #network-stage::before {
+  content: none;
+}
+
+.recode-network.no-thumb-mode #network-stage::after {
+  content: none;
+}
+
+.recode-network.no-thumb-mode {
+  background: #000;
+}
+
+#network-canvas {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  display: block;
+}
+
+#network-canvas canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.recode-network.no-thumb-mode #network-canvas canvas {
+  filter: none;
+}
+
+.network-empty {
+  position: relative;
+  margin: 0;
+  color: rgba(182, 255, 219, 0.95);
+  padding: 1.3rem 1rem;
+  font-family: "Courier New", monospace;
+  text-shadow: 0 0 12px rgba(57, 255, 170, 0.35);
+  pointer-events: none;
+}
+
+.recode-network-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.55rem;
+  pointer-events: none;
+  padding: 1rem 1rem 1.3rem;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.recode-network-loader.active {
+  opacity: 1;
+}
+
+.recode-network-loader-status {
+  color: rgba(190, 255, 220, 0.9);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(0, 255, 170, 0.45);
+}
+
+.recode-network-loader-track {
+  width: min(420px, 62vw);
+  height: 6px;
+  border: 1px solid rgba(0, 245, 125, 0.45);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(0, 18, 10, 0.65);
+  box-shadow: 0 0 12px rgba(0, 255, 120, 0.25);
+}
+
+.recode-network-loader-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0, 255, 120, 0.45), rgba(0, 255, 120, 0.98));
+  transition: width 0.18s ease;
+}
+
+.network-info-panel {
+  position: fixed;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  width: min(470px, calc(100% - 1.4rem));
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(0, 245, 125, 0.35);
+  border-radius: 10px;
+  background: rgba(0, 8, 3, 0.72);
+  backdrop-filter: blur(3px);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.network-info-panel p {
+  margin: 0;
+}
+
+.network-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.network-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-right: auto;
+  letter-spacing: 0.04em;
+}
+
+.network-hint {
+  color: rgba(79, 255, 161, 0.7);
+}
+
+.network-mock-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.33rem 0.55rem;
+  font-size: 0.8rem;
+  color: rgba(167, 255, 198, 0.95);
+  cursor: pointer;
+  border: 1px solid rgba(43, 255, 140, 0.45);
+  border-radius: 999px;
+  background: rgba(0, 12, 6, 0.65);
+  backdrop-filter: blur(3px);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.network-mock-toggle input {
+  width: 0.92rem;
+  height: 0.92rem;
+  flex: 0 0 auto;
+}
+
+.network-node-group {
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.network-link {
+  stroke: rgba(43, 255, 140, 0.2);
+  stroke-width: 0.95;
+  stroke-dasharray: 2 6;
+}
+
+.network-node-circle {
+  fill: rgba(0, 20, 7, 0.86);
+  stroke: rgba(43, 255, 140, 0.74);
+  stroke-width: 1.2;
+}
+
+.network-node-thumbnail {
+  object-fit: cover;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.network-node-thumbnail.is-missing {
+  opacity: 0;
+}
+
+.network-node-fallback {
+  fill: rgba(10, 60, 30, 0.75);
+  stroke: rgba(100, 255, 170, 0.8);
+  stroke-width: 0.9;
+}
+
+.network-node-fallback + text,
+.network-node-fallback ~ text {
+  fill: rgba(225, 255, 233, 0.95);
+}
+
+.network-node-label {
+  fill: rgba(190, 255, 206, 0.95);
+  font-family: "Courier New", monospace;
+  font-size: 9.5px;
+  text-anchor: middle;
+  pointer-events: none;
+  }
+
+.network-node-active {
+  filter: drop-shadow(0 0 12px rgba(53, 255, 149, 0.5));
+}
+
+#network-selected {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  border-top: 1px dashed rgba(0, 255, 128, 0.25);
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .recode-network-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0.55rem 0.65rem;
+  }
+
+  .recode-network-header .logo {
+    width: 4.2em;
+  }
+
+  .recode-back-link {
+    font-size: 0.73rem;
+    letter-spacing: 0;
+  }
+
+  .recode-network-main {
+    padding-top: 4.9rem;
+    min-height: calc(100vh - 4.9rem);
+  }
+
+  #network-canvas {
+    min-height: 320px;
+  }
+
+  .network-info-panel {
+    padding: 0.55rem 0.65rem;
+  }
+}
+
+.recode-network.no-thumb-mode,
+.recode-network.no-thumb-mode #network-stage,
+.recode-network.no-thumb-mode #network-canvas,
+.recode-network.no-thumb-mode #network-stage::before,
+.recode-network.no-thumb-mode #network-stage::after {
+  background: transparent !important;
+  content: none !important;
+}
+
+.recode-network.no-thumb-mode #network-stage::before,
+.recode-network.no-thumb-mode #network-stage::after {
+  display: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+.recode-network.no-thumb-mode #network-canvas canvas {
+  background: transparent !important;
+}
