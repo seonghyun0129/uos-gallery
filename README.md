@@ -91,6 +91,7 @@ python3 scripts/add-artwork.py \
 - `--artist-slug`, `--work-slug` : 자동 생성(slugify) 대신 수동 지정
 - `--overwrite` : 동일한 작품/썸네일 경로가 있어도 덮어쓰기
 - `--no-git` : `git add/commit/push` 수행 안 함
+- `--sync-navigation` : 현재 archives 폴더 기준으로 기존 상세/아카이브/루트 nav를 일괄 갱신(신규 등록 없이)
 
 ### 예외 처리 규칙
 

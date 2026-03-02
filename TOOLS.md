@@ -49,6 +49,7 @@ artist: {영문-슬러그}
 title: {작품명}
 year: {연도}
 month: {월(두 자리)}
+work-slug: {원하면 수동 지정(예: telegram-image-test), 없으면 제목 기반 자동 생성}
 description: {설명}
 + 이미지 첨부
 ```
@@ -60,6 +61,15 @@ works/{artist}/{year}/{month}/{slug}/index.html
 assets/images/gallery/{year}/{month}/{slug}.jpg
 archives/{year}/{month}/index.html
 ```
+
+### 배포 처리 규칙
+
+- 작품 등록 완료 후 기본 동작:
+  - `git add` 대상 파일 추가
+  - `git commit -m "feat: add artwork {title}"`
+  - `git push`
+- OpenClaw 운영 시 기본으로 적용되는 동선이므로, 별도 요청이 없으면 위 흐름을 따른다.
+- 예외: 임시 실행/테스트 모드에서는 `--no-git` 같은 옵션으로 동작을 건너뛸 수 있다.
 
 ## 분리해 두는 이유
 

@@ -10,8 +10,12 @@ Rules:
    year (YYYY)
    month (MM)
    description
+   Optional:
+   work-slug (수동 slug. 한글 제목에서 slug가 깨지거나 고정 URL이 필요할 때 사용)
 
-2. Generate workSlug from title (kebab-case).
+2. Generate workSlug:
+   - If work-slug is provided, use it directly.
+   - Otherwise generate from title (kebab-case).
 
 3. Create directory:
    works/{artist}/{year}/{month}/{workSlug}

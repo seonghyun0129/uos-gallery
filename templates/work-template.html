@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>{{TITLE}}</title>
-  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UOS RECODE | {{TITLE}}</title>
+  <meta property="og:title" content="UOS RECODE">
+  <meta property="og:description" content="서울시립대학교 디자인학과 코딩 스터디그룹 recode">
+  <link href="/assets/css/styles.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  </style>
 </head>
 <body>
+  <header>
+    <div class="header">
+      <a href="/"><img class="logo" src="/assets/images/common/logo.png" alt="logo" /></a>
+      <p class="headertext">UOSVD coding Club</p>
+    </div>
+    <nav class="web_nav">
+      {{NAV_WEB}}
+    </nav>
+    <nav class="mobile_nav">
+      {{NAV_MOBILE}}
+    </nav>
+  </header>
 
-<header>
-  <img src="/assets/images/common/logo.png" alt="logo" />
-</header>
-
-<main>
-  <h1>{{TITLE}}</h1>
-  <p class="meta">{{ARTIST}} · {{YEAR}}.{{MONTH}}</p>
-
-  <div class="image-wrapper">
-    <img src="{{IMAGE_PATH}}" alt="{{TITLE}}" />
+  <div class="content">
+    <div class="info">
+      <p>[DETAIL] : {{YEAR}}.{{MONTH}}</p>
+      <div><a class="member" href="/works/{{ARTIST_SLUG}}/{{YEAR}}/{{MONTH}}/{{WORK_SLUG}}/">{{ARTIST}}</a></div>
+    </div>
+    <div class="work_content">
+      <div class="work_text">
+        <div class="work_text1">
+          <p class="work_title">{{TITLE}}</p>
+          <p class="work_info">{{ARTIST}}</p>
+          <p class="work_info">{{YEAR}}.{{MONTH}}</p>
+        </div>
+        <div class="work_text2">{{DESCRIPTION}}</div>
+      </div>
+      <div class="image-wrapper">
+        <img src="{{IMAGE_PATH}}" alt="{{TITLE}}" />
+      </div>
+    </div>
   </div>
 
-  <p class="description">
-    {{DESCRIPTION}}
-  </p>
-</main>
-
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 </body>
 </html>

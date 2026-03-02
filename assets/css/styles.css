@@ -4,6 +4,7 @@ a { color: white; text-underline-position: under; }
 header { position: fixed; top: 0; }
 .header { border-bottom: 1px solid white; display: flex; justify-content: space-between; background: black; top: 0; z-index: 99; width: 100%; position: fixed; }
 .logo { width: 8em; margin: 0.5em; }
+header > img { width: 8em; margin: 0.5em; }
 .headertext { font-size: 1.3em; margin: 0.3em; text-align: right; }
 .web_nav { position: fixed; left: 0; width: 9em; height: 100%; border-right: 1px solid white; padding: 1.2em 0.5em 1em 0.8em; background: black; margin-top: 2.5em; }
 .mobile_nav { display: none; }

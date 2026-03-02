@@ -39,7 +39,7 @@ WORKS_LINE_TEMPLATE = "                <li>&gt; {year}.{month}</li>"
 
 
 def slugify(value: str) -> str:
-    value = unicodedata.normalize("NFKD", value.strip())
+    value = unicodedata.normalize("NFKC", value.strip())
     value = value.lower()
     value = re.sub(r"[\s_]+", "-", value)
     value = re.sub(r"[^a-z0-9가-힣\-]", "-", value)
@@ -137,6 +137,17 @@ def sync_navigation_links(base_dir: Path) -> list[Path]:
             archive_index.write_text(m, encoding="utf-8")
             changed_files.append(archive_index)
 
+    # 3) existing work detail pages
+    works_dir = base_dir / "works"
+    if works_dir.exists():
+        for work_index in sorted(works_dir.rglob("index.html")):
+            html = work_index.read_text(encoding="utf-8")
+            w, wc = replace_nav_block(html, "web_nav", nav_links)
+            m, mc = replace_nav_block(w, "mobile_nav", nav_links)
+            if wc or mc:
+                work_index.write_text(m, encoding="utf-8")
+                changed_files.append(work_index)
+
     return changed_files
 
 
@@ -225,18 +236,33 @@ def update_archive(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Add artwork page + archive card from templates")
-    parser.add_argument("--artist-name", required=True)
-    parser.add_argument("--title", required=True)
-    parser.add_argument("--year", required=True)
-    parser.add_argument("--month", required=True)
+    parser.add_argument("--artist-name")
+    parser.add_argument("--title")
+    parser.add_argument("--year")
+    parser.add_argument("--month")
     parser.add_argument("--description", default="")
-    parser.add_argument("--image", required=True, help="Path to source image file")
+    parser.add_argument("--image", help="Path to source image file")
     parser.add_argument("--artist-slug", default="")
     parser.add_argument("--work-slug", default="")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--no-git", action="store_true", help="Do not run git add/commit/push")
+    parser.add_argument(
+        "--sync-navigation",
+        action="store_true",
+        help="Sync navigation links only, without creating artwork",
+    )
 
     args = parser.parse_args()
+
+    if args.sync_navigation:
+        updated_pages = sync_navigation_links(BASE)
+        print("[done] sync navigation")
+        for path in updated_pages:
+            print(f"  updated: {path}")
+        return
+
+    if not args.artist_name or not args.title or not args.year or not args.month or not args.image:
+        raise ValueError("Missing required fields: --artist-name, --title, --year, --month, --image")
 
     year = str(args.year).zfill(4)
     month = str(args.month).zfill(2)
@@ -259,6 +285,7 @@ def main() -> None:
     if not WORK_TEMPLATE.exists():
         raise FileNotFoundError(f"Missing template: {WORK_TEMPLATE}")
 
+    nav_links = render_archive_links(collect_archive_months(BASE / "archives"))
     # image copy
     image_dst = BASE / "assets" / "images" / "gallery" / year / month / f"{work_slug}{image_ext}"
     image_dst.parent.mkdir(parents=True, exist_ok=True)
@@ -273,10 +300,14 @@ def main() -> None:
         {
             "TITLE": args.title,
             "ARTIST": args.artist_name,
+            "ARTIST_SLUG": artist_slug,
+            "WORK_SLUG": work_slug,
             "YEAR": year,
             "MONTH": month,
             "DESCRIPTION": args.description,
             "IMAGE_PATH": f"/assets/images/gallery/{year}/{month}/{work_slug}{image_ext}",
+            "NAV_WEB": nav_links,
+            "NAV_MOBILE": nav_links,
         },
     )
     works_index.write_text(work_html, encoding="utf-8")
