@@ -1,19 +1,189 @@
 [[redirects]]
-  from = "/2307/:num"
-  to = "/2307/:num/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/2309/:num"
-  to = "/2309/:num/index.html"
-  status = 200
-
-[[redirects]]
   from = "/2307"
-  to = "/2307/index.html"
-  status = 200
+  to = "/archives/2023/07/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/"
+  to = "/archives/2023/07/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/index.html"
+  to = "/archives/2023/07/"
+  status = 301
 
 [[redirects]]
   from = "/2309"
-  to = "/2309/index.html"
-  status = 200
+  to = "/archives/2023/10/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/"
+  to = "/archives/2023/10/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/index.html"
+  to = "/archives/2023/10/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/1"
+  to = "/works/ryu-chae-eun/2023/07/ryufolio/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/1/"
+  to = "/works/ryu-chae-eun/2023/07/ryufolio/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/1/index.html"
+  to = "/works/ryu-chae-eun/2023/07/ryufolio/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/2"
+  to = "/works/park-na-hyun/2023/07/positive-words/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/2/"
+  to = "/works/park-na-hyun/2023/07/positive-words/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/2/index.html"
+  to = "/works/park-na-hyun/2023/07/positive-words/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/3"
+  to = "/works/park-ju-hye/2023/07/bbss/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/3/"
+  to = "/works/park-ju-hye/2023/07/bbss/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/3/index.html"
+  to = "/works/park-ju-hye/2023/07/bbss/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/4"
+  to = "/works/ryu-chae-eun/2023/07/uosvd/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/4/"
+  to = "/works/ryu-chae-eun/2023/07/uosvd/"
+  status = 301
+
+[[redirects]]
+  from = "/2307/4/index.html"
+  to = "/works/ryu-chae-eun/2023/07/uosvd/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/1"
+  to = "/works/kim-ye-young/2023/10/danbi/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/1/"
+  to = "/works/kim-ye-young/2023/10/danbi/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/1/index.html"
+  to = "/works/kim-ye-young/2023/10/danbi/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/2"
+  to = "/works/ryu-chae-eun/2023/10/busy-day/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/2/"
+  to = "/works/ryu-chae-eun/2023/10/busy-day/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/2/index.html"
+  to = "/works/ryu-chae-eun/2023/10/busy-day/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/3"
+  to = "/works/park-na-hyun/2023/10/tmi-pli/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/3/"
+  to = "/works/park-na-hyun/2023/10/tmi-pli/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/3/index.html"
+  to = "/works/park-na-hyun/2023/10/tmi-pli/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/4"
+  to = "/works/byun-min-kyung/2023/10/letter-archiving/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/4/"
+  to = "/works/byun-min-kyung/2023/10/letter-archiving/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/4/index.html"
+  to = "/works/byun-min-kyung/2023/10/letter-archiving/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/5"
+  to = "/works/choi-hyemin/2023/10/freshly-weaved/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/5/"
+  to = "/works/choi-hyemin/2023/10/freshly-weaved/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/5/index.html"
+  to = "/works/choi-hyemin/2023/10/freshly-weaved/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/6"
+  to = "/works/hwang-yein/2023/10/undercover/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/6/"
+  to = "/works/hwang-yein/2023/10/undercover/"
+  status = 301
+
+[[redirects]]
+  from = "/2309/6/index.html"
+  to = "/works/hwang-yein/2023/10/undercover/"
+  status = 301
+
+[[redirects]]
+  from = "/archives/:year/:month"
+  to = "/archives/:year/:month/"
+  status = 301
+
+[[redirects]]
+  from = "/works/:artist/:year/:month/:project"
+  to = "/works/:artist/:year/:month/:project/"
+  status = 301
